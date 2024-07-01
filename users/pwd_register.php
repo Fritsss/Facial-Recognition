@@ -107,6 +107,7 @@ $conn->close();
                     <div class="column">
                         <label for="dissability">*Type of Dissability</label>
                         <select id="dissability" name="dissability" required>
+                            <option value="blank"> </option>
                             <option value="visualy"> Visually Impared </option>
                             <option value="hearing"> Hearing Impared </option>
                             <option value="orthopedic"> Visually Impared </option>
