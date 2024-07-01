@@ -1,3 +1,87 @@
+<?php
+date_default_timezone_set('America/New_York');
+
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "facial-recognition";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+$key = 'qkwjdiw239&&jdafweihbrhnan&^%$ggdnawhd4njshjwuuO';
+
+function encryptthis($data, $key) {
+    $encryption_key = base64_decode($key);
+    $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('aes-256-cbc'));
+    $encrypted = openssl_encrypt($data, 'aes-256-cbc', $encryption_key, 0, $iv);
+    return base64_encode($encrypted . '::' . $iv);
+}
+
+$message = "";
+
+
+if (isset($_POST['submit'])) {
+
+    $idNumber = $_POST['idNumber'];
+    $firstName = $_POST['dissability'];
+    $firstName = $_POST['firstName'];
+    $middleName = $_POST['middleName'];
+    $surname = $_POST['surname'];
+    $suffix = $_POST['suffix'];
+    $address = $_POST['address'];
+    $dob = $_POST['dob'];
+    $age = $_POST['age'];
+    $sex = $_POST['sex'];
+    $dateIssue = $_POST['dateIssue'];
+    $password = $_POST['password'];
+    $password = $_POST['parent'];
+    $password = $_POST['contact'];
+
+
+$idNumberEncrypted = encryptthis($idNumber, $key);
+$firstNameEncrypted = encryptthis($firstName, $key);
+$middleNameEncrypted = encryptthis($middleName, $key);
+$surnameEncrypted = encryptthis($surname, $key);
+$suffixEncrypted = encryptthis($suffix, $key);
+$addressEncrypted = encryptthis($address, $key);
+$dobEncrypted = encryptthis($dob, $key);
+$ageEncrypted = encryptthis($age, $key);
+$sexEncrypted = encryptthis($sex, $key);
+$dateIDIssueEncrypted = encryptthis($dateIssue, $key);
+$passwordEncrypted = password_hash($password, PASSWORD_DEFAULT);
+
+
+$target_dir = "uploads/";
+$picture = $target_dir . basename($_FILES["picture"]["name"]);
+$idPicture = $target_dir . basename($_FILES["idPicture"]["name"]);
+$signature = $target_dir . basename($_FILES["signature"]["name"]);
+
+if (move_uploaded_file($_FILES["picture"]["tmp_name"], $picture) &&
+    move_uploaded_file($_FILES["idPicture"]["tmp_name"], $idPicture) &&
+    move_uploaded_file($_FILES["signature"]["tmp_name"], $signature)) {
+
+
+    $stmt = $conn->prepare("INSERT INTO senior (idNumber, firstName, middleName, surname, suffix, address, dob, age, sex, dateIssue, picture, idPicture, signature, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("ssssssssssssss", $idNumberEncrypted, $firstNameEncrypted, $middleNameEncrypted, $surnameEncrypted, $suffixEncrypted, $addressEncrypted, $dobEncrypted, $ageEncrypted, $sexEncrypted, $dateIDIssueEncrypted, $picture, $idPicture, $signature, $passwordEncrypted);
+
+    if ($stmt->execute()) {
+        $message = "Registration complete!";
+    } else {
+        $message = "Error: " . $stmt->error;
+    }
+
+    $stmt->close();
+    } else {
+    $message = "Sorry, there was an error uploading your files.";
+    }
+}
+
+$conn->close();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,6 +103,20 @@
                     <div class="column">
                         <label for="idNumber">*ID Number</label>
                         <input type="text" id="idNumber" name="idNumber" required>
+                    </div>
+                    <div class="column">
+                        <label for="dissability">*Type of Dissability</label>
+                        <select id="dissability" name="dissability" required>
+                            <option value="visualy"> Visually Impared </option>
+                            <option value="hearing"> Hearing Impared </option>
+                            <option value="orthopedic"> Visually Impared </option>
+                            <option value="others"> Cleft Palate, Harelip</option>
+                            <option value="imp"> Improved Mental Patients </option>
+                            <option value="mr"> Mentally Retarted </option>
+                            <option value="autism"> Autism </option>
+                            <option value="deficit"> Attention Deficit Disorder</option>
+                            <option value="hyperactive"> Attention Deficit Hyperactive Disorder </option>
+                        </select>
                     </div>
                 </div>
                 <div class="row">
@@ -75,6 +173,19 @@
                     <div class="column">
                         <label for="signature">*Upload Signature</label>
                         <input type="file" id="signature" name="signature" required>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset>
+            <legend>In Case of Emergency</legend>
+                <div class="row">
+                    <div class="column">
+                        <label for="parent">*Parent/Guardian</label>
+                        <input type="text" id="parent" name="parent" required>
+                    </div>
+                    <div class="column">
+                        <label for="contact">*Contact Number</label>
+                        <input type="tel" id="contact" name="contact" pattern="[0-9]{4}-[0-9]{3}-[0-9]{4}" required>
                     </div>
                 </div>
             </fieldset>
